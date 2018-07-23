@@ -1,4 +1,4 @@
-from agent import *
+from agent2 import *
 from mazeimage import *
 
 if __name__ == '__main__':
@@ -37,7 +37,7 @@ if __name__ == '__main__':
     #通ったポケストップの座標（捨てる用）
     encount_indexes=[]
 
-    agent = Agent(maze.shape, start)
+    agent = Agent(maze.shape, start, reward_indexes)
     maze_image = MazeImage(maze, 600, 600)
 
     trial = 0
@@ -46,7 +46,7 @@ if __name__ == '__main__':
             print('!!!escape!!!')
             break
 
-        agent.act(maze, epsilon, alpha, gamma)
+        agent.act(maze, epsilon, alpha, gamma, counter, poke_location)
         maze_image.save_movie()
 
         #if agent.goal(maze.shape):
@@ -59,14 +59,17 @@ if __name__ == '__main__':
             trial += 1
             print('next trial: %d' % trial)
             agent.reset(start, maze, encount_indexes, max_reward)
-            counter=0
             encount_indexes=[]
+            if trial < trial_max:
+                poke_location=[start]
+            counter=0
 
         if trial == trial_max:
             break
 
     maze_image.save_movie()
-    cv2.imwrite('shortest2.png', maze_image.shortest_path(agent.q))
+    #使うQ値の指定がややこしいから後回し
+    #cv2.imwrite('shortest2.png', maze_image.shortest_path(agent.q))
 
     #初期座標と通ったポケストップの座標表示
     poke_location_xy=[]
