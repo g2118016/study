@@ -11,7 +11,7 @@ if __name__ == '__main__':
     #割引率
     gamma = 0.9
     #csvファイル読み込み
-    maze = numpy.loadtxt('./resources/maze.csv', delimiter = ',')
+    maze = numpy.loadtxt('./resources/sample.csv', delimiter = ',')
 
 
     #追加　2018/7/22
@@ -29,10 +29,13 @@ if __name__ == '__main__':
     #ポケストップを通った数を数えるカウンター
     counter=0
     #終了条件：n回ポケストップを通ったらゴール
-    limit=10
+    limit=3
     #通ったポケストップの座標を記録
     poke_location=[start]
-
+    #試行回数 20*20のマスでは100試行で130分かかる
+    trial_max=300
+    #通ったポケストップの座標（捨てる用）
+    encount_indexes=[]
 
     agent = Agent(maze.shape, start)
     maze_image = MazeImage(maze, 600, 600)
@@ -49,19 +52,26 @@ if __name__ == '__main__':
         #if agent.goal(maze.shape):
 
         #変更
-        if agent.goal(reward_indexes, counter, limit, poke_location, maze):
+        maze, reward_indexes, encount_indexes, counter, poke_location=agent.poke_count(reward_indexes, encount_indexes, counter, poke_location, maze, trial, trial_max)
+        if agent.goal(counter, limit):
             #\033[32mとか\033[0mは文字色をつけたりするコンソール制御っぽい？
             print('' + '!!!goal!!!' + '')
             trial += 1
             print('next trial: %d' % trial)
-            agent.reset()
+            agent.reset(start, maze, encount_indexes, max_reward)
+            counter=0
+            encount_indexes=[]
 
-        if trial == 300:
+        if trial == trial_max:
             break
 
     maze_image.save_movie()
-    cv2.imwrite('shortest.png', maze_image.shortest_path(agent.q))
+    cv2.imwrite('shortest2.png', maze_image.shortest_path(agent.q))
 
     #初期座標と通ったポケストップの座標表示
-    print(poke_location)
+    poke_location_xy=[]
+    for i in range(len(poke_location)):
+        xy=[poke_location[i][1], poke_location[i][0]]
+        poke_location_xy.append(xy)
+    print(poke_location_xy)
     cv2.destroyAllWindows()

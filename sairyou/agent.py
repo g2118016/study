@@ -44,27 +44,50 @@ class Agent:
     """
 
     #変更　2018/7/22
-    def goal(self, reward_indexes, counter, limit, poke_location, maze):
+    def poke_count(self, reward_indexes, encount_indexes, counter, poke_location, maze, trial, trial_max):
         #現在地がポケストップか判定
         for i in range(len(reward_indexes)):
-            if numpy.allclose(self.state, reward_indexes[i]):
+            if numpy.array_equal(self.state, reward_indexes[i]) and list(self.state) not in encount_indexes:
+                #コピー
+                copy_zahyou=copy.deepcopy(reward_indexes[i]).tolist()
+                #最後のルートだけ保存
+                if trial==trial_max-1:
+                    #後で使うのでポケストップの場所を保存
+                    poke_location.append(copy_zahyou)
+
                 counter+=1
-                #後で使うのでポケストップの場所を保存
-                copy_index=copy.deepcopy(reward_indexes[i]).tolist()
-                poke_location.append(copy_index)
+
                 #1回通ったポケストップをカウントしないように削除
-                numpy.delete(reward_indexes, copy_index)
+                """
+                reward_indexes=reward_indexes.tolist()
+                reward_indexes.remove(copy_zahyou)
+                reward_indexes=numpy.array(reward_indexes)
+                """
+                #通ったポケストップを記録
+                encount_indexes.append(copy_zahyou)
+
+                #print("poke_location:", len(poke_location))
+                #print("len(reward_indexes)", len(reward_indexes))
+                #reward_indexes=numpy.delete(reward_indexes, numpy.where(reward_indexes==copy_zahyou))
                 #通ったポケストップの報酬をただの道と同じ0にする
-                maze[tuple(copy_index)]=0
+                maze[tuple(copy_zahyou)]=0
                 break
+        #print("counter:", counter)
+        return maze, reward_indexes, encount_indexes, counter, poke_location
+
+
+    def goal(self, counter, limit):
         if counter==limit:
             return True
         else:
             return False
 
-    def reset(self):
+
+    def reset(self, start, maze, encount_indexes, max_reward):
         #初期位置へ戻す
-        self.state = numpy.array([0, 0])
+        self.state = numpy.array(start)
+        for i in encount_indexes:
+            maze[tuple(i)]=max_reward
 
 
 # private method
@@ -106,7 +129,7 @@ class Agent:
             mode = '!!!random!!!'
             act_index = self.__select_random_action(action)
 
-        print(u'%s  state: (%d, %d), action: %d' % (mode, y, x, act_index))
+        #print(u'%s  state: (%d, %d), action: %d' % (mode, y, x, act_index))
 
         return act_index
 

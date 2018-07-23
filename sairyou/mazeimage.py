@@ -20,7 +20,7 @@ class MazeImage:
         self.map_now = self.map_org.copy()
         _y, _x = agent.state
         center = (int((_x + 0.5) * self.xstride), int((_y + 0.5) * self.ystride))
-        cv2.circle(self.map_now, center, 11, (255, 255, 255), -1)
+        cv2.circle(self.map_now, center, 5, (255, 255, 255), -1)
         cv2.imshow('', self.map_now)
         return cv2.waitKey(10)
 
